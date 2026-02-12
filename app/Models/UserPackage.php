@@ -3,12 +3,23 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class UserPackage extends Model
 {
-    protected $fillable = ['user_id', 'package_id', 'expires_at', 'ads_posted'];
+    protected $fillable = [
+        'user_id', 
+        'package_id', 
+        'expires_at', 
+        'ads_posted', 
+        'status', 
+        'renewal_requested_at'
+    ];
 
-    protected $casts = ['expires_at' => 'datetime'];
+    protected $casts = [
+        'expires_at' => 'datetime',
+        'renewal_requested_at' => 'datetime',
+    ];
 
     public function package() {
         return $this->belongsTo(Package::class);
@@ -18,8 +29,11 @@ class UserPackage extends Model
         return $this->hasMany(Advertisement::class);
     }
     
-    // Check if package is valid
+    // --- THIS WAS MISSING ---
+    // It checks if the package is active, not expired, and has ad slots left.
     public function isValid() {
-        return $this->expires_at->isFuture() && $this->ads_posted < $this->package->ad_limit;
+        return $this->status === 'active' 
+            && $this->expires_at->isFuture() 
+            && $this->ads_posted < $this->package->ad_limit;
     }
 }

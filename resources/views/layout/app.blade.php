@@ -33,15 +33,36 @@
                 
                 @auth
                     @if(Auth::user()->role == 'admin')
-                        <a href="{{ route('admin.packages.create') }}" class="hover:text-indigo-200 transition"><i class="fa-solid fa-plus-circle mr-1"></i> Add Package</a>
-                        <a href="{{ route('admin.ads.index') }}" class="bg-indigo-600 px-4 py-2 rounded-full hover:bg-indigo-500 transition shadow-sm">
-                            <i class="fa-solid fa-bell mr-1"></i> Pending Ads
+                        <a href="{{ route('admin.packages.create') }}" class="hover:text-indigo-200 transition">
+                            <i class="fa-solid fa-plus-circle mr-1"></i> Add Package
                         </a>
+                        <a href="{{ route('admin.ads.index') }}" class="hover:text-indigo-200 transition">
+                            <i class="fa-solid fa-rectangle-list mr-1"></i> Pending Ads
+                        </a>
+                        
+                        <a href="{{ route('admin.notifications') }}" class="relative hover:text-indigo-200 transition">
+                            <i class="fa-solid fa-bell text-xl"></i>
+                            <span class="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                            </span>
+                        </a>
+
                     @else
-                        <a href="{{ route('user.my_packages') }}" class="hover:text-indigo-200 transition"><i class="fa-solid fa-box-open mr-1"></i> My Packages</a>
+                        <a href="{{ route('user.my_packages') }}" class="hover:text-indigo-200 transition">
+                            <i class="fa-solid fa-box-open mr-1"></i> My Packages
+                        </a>
+
+                        <a href="{{ route('user.notifications') }}" class="relative hover:text-indigo-200 transition ml-2">
+                             <i class="fa-solid fa-bell text-xl"></i>
+                             <span class="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                            </span>
+                        </a>
                     @endif
                     
-                    <div class="relative group">
+                    <div class="relative group ml-4">
                         <a href="{{ route('profile') }}" class="flex items-center space-x-2 hover:text-indigo-200 transition">
                             @if(Auth::user()->profile_photo)
                                 <img src="{{ asset('storage/'.Auth::user()->profile_photo) }}" class="w-8 h-8 rounded-full border-2 border-white object-cover">
