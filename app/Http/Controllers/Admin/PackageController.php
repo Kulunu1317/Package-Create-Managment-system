@@ -9,17 +9,17 @@ use Illuminate\Support\Facades\Storage;
 
 class PackageController extends Controller
 {
-    // 1. Show all packages (Admin View)
+    // Show Dashboard with Packages
     public function index() {
         return view('welcome', ['packages' => Package::all()]);
     }
 
-    // 2. Show the "Create Package" Form (THIS WAS MISSING)
+    // Show Create Form
     public function create() {
         return view('admin.packages.create');
     }
 
-    // 3. Store the new package in database
+    // Store New Package
     public function store(Request $request) {
         $request->validate([
             'name' => 'required',
@@ -27,7 +27,10 @@ class PackageController extends Controller
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'description' => 'required',
             'ad_limit' => 'required|integer',
-            'validity_days' => 'required|integer'
+            
+            // Validate the NEW fields
+            'validity_value' => 'required|integer',
+            'duration_unit' => 'required|in:minutes,hours,days',
         ]);
 
         $path = $request->file('image')->store('packages', 'public');
@@ -38,13 +41,16 @@ class PackageController extends Controller
             'image' => $path,
             'description' => $request->description,
             'ad_limit' => $request->ad_limit,
-            'validity_days' => $request->validity_days,
+            
+            // Save the NEW fields
+            'validity_value' => $request->validity_value,
+            'duration_unit' => $request->duration_unit,
         ]);
 
-        return redirect()->route('home')->with('success', 'Package Created');
+        return redirect()->route('home')->with('success', 'Package Created Successfully');
     }
 
-    // 4. Delete a package
+    // Delete Package
     public function destroy(Package $package) {
         if($package->image) {
             Storage::disk('public')->delete($package->image);

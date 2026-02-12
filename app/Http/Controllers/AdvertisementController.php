@@ -4,34 +4,45 @@ namespace App\Http\Controllers;
 
 use App\Models\Advertisement;
 use App\Models\UserPackage;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AdvertisementController extends Controller
 {
+    // 1. Show "Create Ad" Form
     public function create(UserPackage $userPackage) {
+        // Check if package is valid (Active + Future Date + Ad Slots available)
         if (!$userPackage->isValid()) {
-            return redirect()->route('user.my_packages')->with('error', 'Package invalid or limit reached');
+            return redirect()->route('user.my_packages')
+                ->with('error', 'Error: Package invalid, expired, or ad limit reached.');
         }
         return view('user.create_ad', compact('userPackage'));
     }
 
+    // 2. Store the Ad in Database
     public function store(Request $request) {
         $request->validate([
-            'job_name' => 'required', 'job_type' => 'required',
-            'company_logo' => 'required|image', 'salary' => 'required',
-            'description' => 'required', 'user_package_id' => 'required'
+            'job_name' => 'required|string|max:255',
+            'job_type' => 'required|string',
+            'company_logo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'salary' => 'required|string',
+            'description' => 'required|string',
+            'user_package_id' => 'required|exists:user_packages,id'
         ]);
 
         $package = UserPackage::findOrFail($request->user_package_id);
-        
-        // Final Safety Check
+
+        // Double check limit before saving
         if ($package->ads_posted >= $package->package->ad_limit) {
-             return back()->with('error', 'Limit Reached');
+             return back()->with('error', 'Ad limit reached for this package.');
         }
 
+        // Upload Logo
         $path = $request->file('company_logo')->store('logos', 'public');
 
+        // Create Advertisement
         Advertisement::create([
             'user_id' => Auth::id(),
             'user_package_id' => $package->id,
@@ -40,27 +51,63 @@ class AdvertisementController extends Controller
             'company_logo' => $path,
             'salary' => $request->salary,
             'description' => $request->description,
-            'status' => 'pending'
+            'status' => 'pending', // Default status
+            'expires_at' => $package->expires_at, // Sync expiry with package
         ]);
 
+        // Increment the counter on the package
         $package->increment('ads_posted');
 
-        return redirect()->route('home')->with('success', 'Ad sent to admin for approval');
+        return redirect()->route('home')->with('success', 'Ad submitted! Waiting for admin approval.');
     }
 
-    // Admin Methods
+    // 3. User Requests Time Extension
+    public function updateTime(Request $request, $id) {
+        $request->validate([
+            'extension_value' => 'required|integer|min:1',
+            'extension_unit' => 'required|in:minutes,hours,days'
+        ]);
+
+        $ad = Advertisement::findOrFail($id);
+        
+        // Save request details
+        $ad->update([
+            'extension_requested_at' => now(),
+            'extension_value' => $request->extension_value,
+            'extension_unit' => $request->extension_unit
+        ]);
+
+        // Notify Admin
+        $admin = User::where('role', 'admin')->first();
+        if ($admin) {
+            Notification::create([
+                'user_id' => $admin->id,
+                'type' => 'ad_extension_request',
+                'message' => "User " . Auth::user()->name . " requests time extension for ad: " . $ad->job_name,
+                'data' => ['ad_id' => $id]
+            ]);
+        }
+
+        return back()->with('success', 'Time extension request sent to Admin');
+    }
+
+    // --- Admin Methods ---
+
+    // 4. View Pending Ads
     public function adminIndex() {
-        $ads = Advertisement::with('user')->where('status', 'pending')->get();
+        $ads = Advertisement::with('user')->where('status', 'pending')->latest()->get();
         return view('admin.ads_index', compact('ads'));
     }
 
+    // 5. Approve Ad
     public function approve($id) {
         Advertisement::findOrFail($id)->update(['status' => 'approved']);
-        return back()->with('success', 'Approved');
+        return back()->with('success', 'Ad Approved Successfully');
     }
 
+    // 6. Reject Ad
     public function reject($id) {
         Advertisement::findOrFail($id)->update(['status' => 'rejected']);
-        return back()->with('success', 'Rejected');
+        return back()->with('success', 'Ad Rejected');
     }
 }
