@@ -1,76 +1,98 @@
 @extends('layout.app')
 
 @section('content')
-<div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+<div class="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
     <div class="mb-6 border-b pb-4">
         <h2 class="text-2xl font-bold text-gray-800"><i class="fa-solid fa-box-open text-indigo-600 mr-2"></i> Create New Package</h2>
-        <p class="text-gray-500 text-sm mt-1">Set up a new advertising plan for your users.</p>
     </div>
 
     @if ($errors->any())
-        <div class="bg-red-50 text-red-700 p-4 rounded-lg mb-6 border-l-4 border-red-500">
-            <ul class="list-disc list-inside">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
+        <div class="bg-red-50 text-red-700 p-4 rounded-lg mb-6">{{ $errors->first() }}</div>
     @endif
 
-    <form action="{{ route('admin.packages.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6" onsubmit="this.querySelector('button[type=submit]').disabled = true; this.querySelector('button[type=submit]').innerHTML = '<i class=\'fa-solid fa-spinner fa-spin mr-2\'></i> Processing...';">
+    <form action="{{ route('admin.packages.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Package Name</label>
-                <input type="text" name="name" placeholder="e.g. Premium Blaster" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition" required>
+                <input type="text" name="name" class="w-full border p-3 rounded-lg" required>
             </div>
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Price ($)</label>
-                <input type="number" name="price" placeholder="e.g. 50.00" step="0.01" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition" required>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Base Price ($)</label>
+                <input type="number" name="price" step="0.01" class="w-full border p-3 rounded-lg" required>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Ad Limit (Max Ads)</label>
-                <input type="number" name="ad_limit" placeholder="e.g. 10" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition" required>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Ad Limit</label>
+                <input type="number" name="ad_limit" class="w-full border p-3 rounded-lg" required>
             </div>
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Package Image</label>
-                <input type="file" name="image" class="w-full border border-gray-300 p-2 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" required>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Image</label>
+                <input type="file" name="image" class="w-full border p-2 rounded-lg" required>
             </div>
         </div>
 
         <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-            <h3 class="text-sm font-bold text-indigo-800 mb-3"><i class="fa-regular fa-clock mr-1"></i> Package Validity Duration</h3>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Value</label>
-                    <input type="number" name="validity_value" placeholder="e.g. 30" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" required>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Unit</label>
-                    <select name="duration_unit" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
-                        <option value="minutes">Minutes</option>
-                        <option value="hours">Hours</option>
-                        <option value="days">Days</option>
-                    </select>
-                </div>
+            <h3 class="text-sm font-bold text-indigo-800 mb-3"><i class="fa-regular fa-clock mr-1"></i> Validity</h3>
+            <div class="flex gap-4">
+                <input type="number" name="validity_value" placeholder="Val" class="w-1/2 border p-2 rounded" required>
+                <select name="duration_unit" class="w-1/2 border p-2 rounded">
+                    <option value="minutes">Minutes</option>
+                    <option value="hours">Hours</option>
+                    <option value="days">Days</option>
+                </select>
             </div>
-            <p class="text-xs text-indigo-500 mt-2">Example: Value <b>2</b> + Unit <b>Minutes</b> = Package expires in 2 Minutes.</p>
+        </div>
+
+        <div class="border border-gray-200 rounded-xl overflow-hidden">
+            <details class="group">
+                <summary class="flex justify-between items-center font-medium cursor-pointer list-none p-4 bg-gray-50 hover:bg-gray-100 transition">
+                    <span class="text-indigo-700 font-bold flex items-center">
+                        <i class="fa-solid fa-gem mr-2"></i> Advanced Feature: Tiered Pricing
+                    </span>
+                    <span class="transition group-open:rotate-180">
+                        <i class="fa-solid fa-chevron-down text-gray-500"></i>
+                    </span>
+                </summary>
+                
+                <div class="text-gray-500 text-sm px-4 pt-2 pb-2">
+                    Optional: Set higher prices for priority tiers. Diamond ads appear at the top.
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-white">
+                    <div class="border rounded-lg p-3 hover:shadow-md transition bg-gray-50">
+                        <div class="flex items-center mb-2 text-gray-600">
+                            <i class="fa-solid fa-medal mr-2"></i> <span class="font-bold">Silver Price</span>
+                        </div>
+                        <input type="number" step="0.01" name="price_silver" placeholder="ex: 60.00" class="w-full border p-2 rounded">
+                    </div>
+
+                    <div class="border rounded-lg p-3 hover:shadow-md transition bg-yellow-50">
+                        <div class="flex items-center mb-2 text-yellow-600">
+                            <i class="fa-solid fa-medal mr-2"></i> <span class="font-bold">Gold Price</span>
+                        </div>
+                        <input type="number" step="0.01" name="price_gold" placeholder="ex: 80.00" class="w-full border p-2 rounded">
+                    </div>
+
+                    <div class="border rounded-lg p-3 hover:shadow-md transition bg-blue-50">
+                        <div class="flex items-center mb-2 text-blue-600">
+                            <i class="fa-regular fa-gem mr-2"></i> <span class="font-bold">Diamond Price</span>
+                        </div>
+                        <input type="number" step="0.01" name="price_diamond" placeholder="ex: 100.00" class="w-full border p-2 rounded">
+                    </div>
+                </div>
+            </details>
         </div>
 
         <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
-            <textarea name="description" rows="4" placeholder="Describe the benefits..." class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition" required></textarea>
+            <textarea name="description" rows="3" class="w-full border p-3 rounded-lg" required></textarea>
         </div>
 
-        <div class="flex justify-end pt-4">
-            <button type="submit" class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold shadow-lg hover:bg-indigo-700 transform hover:-translate-y-0.5 transition duration-200">
-                <i class="fa-solid fa-plus mr-2"></i> Create Package
-            </button>
-        </div>
+        <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700">Create Package</button>
     </form>
 </div>
 @endsection

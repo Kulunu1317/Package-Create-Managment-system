@@ -9,6 +9,7 @@ use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class UserPackageController extends Controller
 {
@@ -24,36 +25,28 @@ class UserPackageController extends Controller
     }
 
     // --- 2. BUY PACKAGE ---
-    public function buy(Package $package) {
+  public function buy(Request $request, Package $package) {
         $user = Auth::user();
         
-        // 2-Hour Limit Logic
-        $lastPurchase = UserPackage::where('user_id', $user->id)
-            ->latest('created_at')
-            ->first();
+        // 1. Get Selected Tier from Form (default to normal)
+        $tier = $request->input('tier', 'normal');
 
-        if ($lastPurchase && $lastPurchase->created_at->diffInHours(now()) < 2) {
-            return back()->with('error', 'Please wait 2 hours before buying another package!');
-        }
+        // 2. Calculate Expiry
+        $expiresAt = \Carbon\Carbon::now();
+        if($package->duration_unit == 'minutes') $expiresAt->addMinutes($package->validity_value);
+        elseif($package->duration_unit == 'hours') $expiresAt->addHours($package->validity_value);
+        else $expiresAt->addDays($package->validity_value);
 
-        // Calculate Expiry
-        $expiresAt = Carbon::now();
-        if($package->duration_unit == 'minutes') {
-            $expiresAt->addMinutes($package->validity_value);
-        } elseif($package->duration_unit == 'hours') {
-            $expiresAt->addHours($package->validity_value);
-        } else {
-            $expiresAt->addDays($package->validity_value);
-        }
-
+        // 3. Create UserPackage with the correct TIER
         UserPackage::create([
             'user_id' => $user->id,
             'package_id' => $package->id,
+            'tier' => $tier, // <--- SAVING THE TIER
             'expires_at' => $expiresAt,
             'status' => 'active'
         ]);
 
-        return back()->with('success', 'Package Bought Successfully!');
+        return back()->with('success', "Successfully bought {$package->name} ({$tier} Package)!");
     }
 
     // --- 3. REQUEST RENEWAL (Active Again) ---

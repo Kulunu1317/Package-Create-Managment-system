@@ -3,142 +3,196 @@
 @section('content')
 
 <div class="bg-indigo-600 rounded-3xl p-10 mb-12 text-center text-white shadow-2xl relative overflow-hidden">
-    <div class="absolute inset-0 bg-pattern opacity-10"></div> 
-    <h1 class="text-4xl md:text-5xl font-extrabold mb-4 relative z-10">Find Your Dream Job or Hire Talent</h1>
-    <p class="text-indigo-100 text-lg mb-8 max-w-2xl mx-auto relative z-10">Join thousands of companies and professionals. Buy a package to post ads or browse opportunities today.</p>
-    @guest
-        <a href="{{ route('register') }}" class="bg-white text-indigo-700 px-8 py-3 rounded-full font-bold text-lg shadow-lg hover:bg-gray-100 transition relative z-10">
-            Create Account <i class="fa-solid fa-arrow-right ml-2"></i>
-        </a>
-    @endguest
+    <h1 class="text-4xl font-extrabold mb-4 relative z-10">Find Jobs & Hire Talent</h1>
+    <p class="text-indigo-100 text-lg relative z-10">Boost your ad visibility with our Diamond Tier packages!</p>
+    <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+        <i class="fa-solid fa-briefcase text-9xl absolute -top-10 -left-10 transform rotate-12"></i>
+        <i class="fa-solid fa-layer-group text-9xl absolute -bottom-10 -right-10 transform -rotate-12"></i>
+    </div>
 </div>
 
-<div class="flex items-center justify-between mb-8">
-    <h2 class="text-3xl font-bold text-gray-800"><i class="fa-solid fa-tags text-indigo-600 mr-2"></i> Advertising Packages</h2>
-</div>
+<h2 class="text-3xl font-bold text-gray-800 mb-8"><i class="fa-solid fa-tags text-indigo-600 mr-2"></i> Choose Your Tier</h2>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
     @foreach($packages as $pkg)
-    <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:-translate-y-2 transition duration-300 border border-gray-100">
-        <div class="relative h-48 bg-gray-200">
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 flex flex-col h-full transform transition hover:-translate-y-1" 
+         x-data="{ tier: 'normal', price: {{ $pkg->price }} }">
+        
+        <div class="relative h-48 bg-gray-200 group">
             @if($pkg->image)
-                <img src="{{ asset('storage/'.$pkg->image) }}" class="w-full h-full object-cover">
+                <img src="{{ asset('storage/'.$pkg->image) }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
             @else
-                <div class="flex flex-col items-center justify-center h-full text-gray-400">
-                    <i class="fa-solid fa-image text-4xl mb-2"></i>
-                    <span>No Image</span>
-                </div>
+                <div class="flex items-center justify-center h-full text-gray-400 bg-gray-100">No Image</div>
             @endif
-            <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-gray-700 shadow-sm">
+            <div class="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full text-xs font-bold text-gray-700 shadow-sm">
                 <i class="fa-regular fa-clock mr-1"></i> {{ $pkg->validity_value }} {{ ucfirst($pkg->duration_unit) }}
             </div>
         </div>
 
-        <div class="p-6">
+        <div class="p-6 flex-grow flex flex-col">
             <h3 class="text-xl font-bold text-gray-900 mb-1">{{ $pkg->name }}</h3>
+            
             <div class="flex items-baseline mb-4">
-                <span class="text-3xl font-extrabold text-indigo-600">${{ number_format($pkg->price, 0) }}</span>
-                <span class="text-gray-500 ml-1 text-sm">/ package</span>
+                <span class="text-3xl font-extrabold text-indigo-600" x-text="'$' + price"></span>
+                <span class="text-gray-500 ml-1 text-sm font-bold uppercase" x-text="tier"></span>
             </div>
-            
-            <p class="text-gray-600 text-sm mb-6 line-clamp-2 h-10">{{ $pkg->description }}</p>
 
-            <ul class="text-sm text-gray-600 space-y-2 mb-6 border-t pt-4">
-                <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> Post up to <strong>{{ $pkg->ad_limit }}</strong> Ads</li>
-                <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> Premium Support</li>
-            </ul>
-            
+            @if($pkg->price_silver || $pkg->price_gold || $pkg->price_diamond)
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <button @click="tier = 'normal'; price = {{ $pkg->price }}" 
+                    :class="tier === 'normal' ? 'bg-gray-800 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                    class="px-2 py-1.5 rounded text-xs font-bold transition">
+                    Normal
+                </button>
+
+                @if($pkg->price_silver)
+                <button @click="tier = 'silver'; price = {{ $pkg->price_silver }}" 
+                    :class="tier === 'silver' ? 'bg-gray-500 text-white shadow-md ring-2 ring-gray-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                    class="px-2 py-1.5 rounded text-xs font-bold transition flex items-center justify-center">
+                    <i class="fa-solid fa-medal mr-1"></i> Silver
+                </button>
+                @endif
+
+                @if($pkg->price_gold)
+                <button @click="tier = 'gold'; price = {{ $pkg->price_gold }}" 
+                    :class="tier === 'gold' ? 'bg-yellow-500 text-white shadow-md ring-2 ring-yellow-300' : 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100'"
+                    class="px-2 py-1.5 rounded text-xs font-bold transition flex items-center justify-center">
+                    <i class="fa-solid fa-medal mr-1"></i> Gold
+                </button>
+                @endif
+
+                @if($pkg->price_diamond)
+                <button @click="tier = 'diamond'; price = {{ $pkg->price_diamond }}" 
+                    :class="tier === 'diamond' ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-300' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'"
+                    class="px-2 py-1.5 rounded text-xs font-bold transition flex items-center justify-center">
+                    <i class="fa-regular fa-gem mr-1"></i> Diamond
+                </button>
+                @endif
+            </div>
+            @endif
+
+            <p class="text-gray-600 text-sm mb-6 flex-grow">{{ $pkg->description }}</p>
+
             @auth
                 @if(Auth::user()->role == 'admin')
-                    <form action="{{ route('admin.packages.destroy', $pkg->id) }}" method="POST" onsubmit="return confirm('Delete this package?');">
+                    <form action="{{ route('admin.packages.destroy', $pkg->id) }}" method="POST" onsubmit="return confirm('Delete this package?');" class="mt-auto">
                         @csrf @method('DELETE')
-                        <button class="w-full bg-red-50 text-red-600 border border-red-200 py-2.5 rounded-xl font-semibold hover:bg-red-600 hover:text-white transition duration-300">
+                        <button type="submit" class="w-full bg-red-50 text-red-600 border border-red-200 py-3 rounded-xl font-bold hover:bg-red-600 hover:text-white transition duration-300 flex items-center justify-center">
                             <i class="fa-solid fa-trash mr-2"></i> Delete Package
                         </button>
                     </form>
                 @else
-                    <form action="{{ route('user.buy_package', $pkg->id) }}" method="POST">
+                    <form action="{{ route('user.buy_package', $pkg->id) }}" method="POST" class="mt-auto">
                         @csrf
-                        <button class="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold shadow-md hover:bg-indigo-700 hover:shadow-lg transition duration-300 flex justify-center items-center">
-                            <span>Buy Now</span> <i class="fa-solid fa-cart-shopping ml-2"></i>
+                        <input type="hidden" name="tier" x-model="tier">
+                        <button type="submit" class="w-full py-3 rounded-xl font-semibold shadow-md transition duration-300 flex justify-center items-center"
+                            :class="{
+                                'bg-gray-800 text-white hover:bg-gray-900': tier === 'normal',
+                                'bg-gray-500 text-white hover:bg-gray-600': tier === 'silver',
+                                'bg-yellow-500 text-white hover:bg-yellow-600': tier === 'gold',
+                                'bg-blue-600 text-white hover:bg-blue-700': tier === 'diamond'
+                            }">
+                            <span>Buy</span> <span class="ml-1 capitalize" x-text="tier"></span>
                         </button>
                     </form>
                 @endif
             @endauth
+            
+            @guest
+                <a href="{{ route('login') }}" class="mt-auto w-full bg-indigo-600 text-white py-3 rounded-xl font-bold text-center hover:bg-indigo-700 shadow-md">
+                    Login to Buy
+                </a>
+            @endguest
         </div>
     </div>
     @endforeach
 </div>
 
-<div class="flex items-center justify-between mb-8 border-t pt-10">
-    <h2 class="text-3xl font-bold text-gray-800"><i class="fa-solid fa-briefcase text-indigo-600 mr-2"></i> Latest Jobs</h2>
+<div class="mb-12">
+    <h2 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-4"><i class="fa-solid fa-briefcase text-indigo-600 mr-2"></i> Latest Jobs</h2>
+
+    @if($ads->isEmpty())
+        <div class="bg-blue-50 text-blue-800 p-8 rounded-xl flex flex-col items-center justify-center text-center">
+            <i class="fa-solid fa-circle-info text-4xl mb-3"></i>
+            <p class="text-lg font-medium">No active job advertisements available at the moment.</p>
+        </div>
+    @else
+        @php
+            $diamondAds = $ads->where('tier', 'diamond');
+            $goldAds = $ads->where('tier', 'gold');
+            $silverAds = $ads->where('tier', 'silver');
+            $normalAds = $ads->where('tier', 'normal');
+        @endphp
+
+        @if($diamondAds->isNotEmpty())
+        <div class="mb-10">
+            <div class="flex items-center mb-4">
+                <h3 class="text-2xl font-bold text-blue-600 flex items-center">
+                    <i class="fa-regular fa-gem mr-2"></i> Diamond Listings
+                </h3>
+                <div class="ml-4 h-1 flex-grow bg-gradient-to-r from-blue-200 to-transparent rounded"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                @foreach($diamondAds as $ad)
+                    @include('partials.ad_card', ['ad' => $ad, 'border' => 'border-2 border-blue-500 ring-2 ring-blue-50', 'badge' => 'bg-blue-600 text-white'])
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        @if($goldAds->isNotEmpty())
+        <div class="mb-10">
+            <div class="flex items-center mb-4">
+                <h3 class="text-2xl font-bold text-yellow-500 flex items-center">
+                    <i class="fa-solid fa-medal mr-2"></i> Gold Listings
+                </h3>
+                <div class="ml-4 h-1 flex-grow bg-gradient-to-r from-yellow-200 to-transparent rounded"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                @foreach($goldAds as $ad)
+                    @include('partials.ad_card', ['ad' => $ad, 'border' => 'border-2 border-yellow-400 ring-2 ring-yellow-50', 'badge' => 'bg-yellow-500 text-white'])
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        @if($silverAds->isNotEmpty())
+        <div class="mb-10">
+            <div class="flex items-center mb-4">
+                <h3 class="text-2xl font-bold text-gray-500 flex items-center">
+                    <i class="fa-solid fa-medal mr-2"></i> Silver Listings
+                </h3>
+                <div class="ml-4 h-1 flex-grow bg-gradient-to-r from-gray-200 to-transparent rounded"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                @foreach($silverAds as $ad)
+                    @include('partials.ad_card', ['ad' => $ad, 'border' => 'border border-gray-400', 'badge' => 'bg-gray-500 text-white'])
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        @if($normalAds->isNotEmpty())
+        <div class="mb-10">
+             <div class="flex items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-700 flex items-center">
+                    <i class="fa-solid fa-list mr-2"></i> Standard Listings
+                </h3>
+                <div class="ml-4 h-1 flex-grow bg-gray-100 rounded"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                @foreach($normalAds as $ad)
+                    @include('partials.ad_card', ['ad' => $ad, 'border' => 'border border-gray-100', 'badge' => null])
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+    @endif
 </div>
 
-@if($ads->isEmpty())
-    <div class="bg-blue-50 text-blue-800 p-6 rounded-xl flex items-center justify-center">
-        <i class="fa-solid fa-circle-info mr-2"></i> No active job advertisements available at the moment.
-    </div>
-@else
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        @foreach($ads as $ad)
-        <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl transition border border-gray-100 group relative">
-            
-            <div class="flex items-start justify-between mb-4">
-                <img src="{{ asset('storage/'.$ad->company_logo) }}" class="w-14 h-14 rounded-xl object-cover shadow-sm border border-gray-100 group-hover:scale-105 transition">
-                <span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-2 py-1 rounded-md uppercase tracking-wide">
-                    {{ $ad->job_type }}
-                </span>
-            </div>
-            
-            <h4 class="font-bold text-lg text-gray-900 mb-1 line-clamp-1 group-hover:text-indigo-600 transition">{{ $ad->job_name }}</h4>
-            <p class="text-sm text-gray-500 mb-4 h-10 line-clamp-2">{{ $ad->description }}</p>
-            
-            <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">
-                <span class="text-green-600 font-bold text-sm"><i class="fa-solid fa-money-bill-wave mr-1"></i> {{ $ad->salary }}</span>
-                <button class="text-gray-400 hover:text-indigo-600"><i class="fa-regular fa-bookmark"></i></button>
-            </div>
+<script src="//unpkg.com/alpinejs" defer></script>
+@endsection
 
-            @if(Auth::check() && Auth::id() == $ad->user_id)
-                <div class="mt-4">
-                    <button onclick="document.getElementById('extend-modal-{{ $ad->id }}').classList.remove('hidden')" 
-                            class="w-full bg-indigo-100 text-indigo-700 text-xs font-bold py-2 rounded hover:bg-indigo-200 transition">
-                        <i class="fa-solid fa-clock-rotate-left mr-1"></i> Update Time
-                    </button>
-                </div>
-
-                <div id="extend-modal-{{ $ad->id }}" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
-                    <div class="bg-white p-6 rounded-xl w-96 shadow-2xl animate-fade-in-up">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-lg text-gray-800">Extend Ad Duration</h3>
-                            <button onclick="document.getElementById('extend-modal-{{ $ad->id }}').classList.add('hidden')" class="text-gray-400 hover:text-red-500">
-                                <i class="fa-solid fa-xmark text-xl"></i>
-                            </button>
-                        </div>
-                        
-                        <p class="text-sm text-gray-500 mb-4">Request admin to extend the removal time for <strong>{{ $ad->job_name }}</strong>.</p>
-                        
-                        <form action="{{ route('user.extend_ad', $ad->id) }}" method="POST">
-                            @csrf
-                            <div class="flex space-x-2 mb-4">
-                                <input type="number" name="extension_value" class="border border-gray-300 p-2 rounded w-2/3 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Value (e.g. 30)" required>
-                                <select name="extension_unit" class="border border-gray-300 p-2 rounded w-1/3 focus:ring-2 focus:ring-indigo-500 outline-none">
-                                    <option value="minutes">Mins</option>
-                                    <option value="hours">Hours</option>
-                                    <option value="days">Days</option>
-                                </select>
-                            </div>
-                            <div class="flex justify-end space-x-2">
-                                <button type="button" onclick="document.getElementById('extend-modal-{{ $ad->id }}').classList.add('hidden')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
-                                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded font-medium hover:bg-indigo-700 transition">Send Request</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            @endif
-
-        </div>
-        @endforeach
-    </div>
-@endif
-
+@section('scripts')
 @endsection
