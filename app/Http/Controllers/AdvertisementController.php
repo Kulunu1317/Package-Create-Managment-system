@@ -23,6 +23,7 @@ class AdvertisementController extends Controller
 
     // 2. Store the Ad in Database
     public function store(Request $request) {
+        // A. Validate the incoming data
         $request->validate([
             'job_name' => 'required|string|max:255',
             'job_type' => 'required|string',
@@ -34,15 +35,19 @@ class AdvertisementController extends Controller
 
         $package = UserPackage::findOrFail($request->user_package_id);
 
-        // Double check limit before saving
+        // B. Check ad limit again for safety
         if ($package->ads_posted >= $package->package->ad_limit) {
              return back()->with('error', 'Ad limit reached for this package.');
         }
 
-        // Upload Logo
-        $path = $request->file('company_logo')->store('logos', 'public');
+        // C. Upload the Logo
+        if ($request->hasFile('company_logo')) {
+            $path = $request->file('company_logo')->store('logos', 'public');
+        } else {
+            return back()->with('error', 'Image upload failed');
+        }
 
-        // Create Advertisement
+        // D. Create the Advertisement
         Advertisement::create([
             'user_id' => Auth::id(),
             'user_package_id' => $package->id,
@@ -51,11 +56,15 @@ class AdvertisementController extends Controller
             'company_logo' => $path,
             'salary' => $request->salary,
             'description' => $request->description,
-            'status' => 'pending', // Default status
+            
+            // Critical: Copy the TIER from the package so sorting works
+            'tier' => $package->tier, 
+            
+            'status' => 'pending', // Default status is pending approval
             'expires_at' => $package->expires_at, // Sync expiry with package
         ]);
 
-        // Increment the counter on the package
+        // E. Increment the counter on the package
         $package->increment('ads_posted');
 
         return redirect()->route('home')->with('success', 'Ad submitted! Waiting for admin approval.');
@@ -70,7 +79,7 @@ class AdvertisementController extends Controller
 
         $ad = Advertisement::findOrFail($id);
         
-        // Save request details
+        // Save request details to the ad
         $ad->update([
             'extension_requested_at' => now(),
             'extension_value' => $request->extension_value,

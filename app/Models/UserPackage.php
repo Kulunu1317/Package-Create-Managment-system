@@ -8,13 +8,8 @@ use Illuminate\Support\Carbon;
 class UserPackage extends Model
 {
     protected $fillable = [
-        'user_id', 
-        'package_id', 
-        'expires_at', 
-        'ads_posted', 
-        'status', 
-        'renewal_requested_at'
-    ];
+    'user_id', 'package_id', 'expires_at', 'status', 'tier', 'renewal_requested_at' // Add 'tier'
+];
 
     protected $casts = [
         'expires_at' => 'datetime',
